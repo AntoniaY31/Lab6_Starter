@@ -5,7 +5,10 @@
 const recipes = [
   'https://introweb.tech/assets/json/ghostCookies.json',
   'https://introweb.tech/assets/json/birthdayCake.json',
-  'https://introweb.tech/assets/json/chocolateChip.json'
+  'https://introweb.tech/assets/json/chocolateChip.json',
+  'assets/recipes/mochinut.json',
+  'assets/recipes/currychicken.json',
+  'assets/recipes/boba.json'
 ];
 
 // Once all of the recipes that were specified above have been fetched, their
@@ -19,6 +22,8 @@ window.addEventListener('DOMContentLoaded', init);
 async function init() {
   // fetch the recipes and wait for them to load
   let fetchSuccessful = await fetchRecipes();
+  console.log("Populate recipeData: length is", Object.keys(recipeData).length);
+  console.log(recipeData);
   // if they didn't successfully load, quit the function
   if (!fetchSuccessful) {
     console.log('Recipe fetch unsuccessful');
@@ -31,6 +36,25 @@ async function init() {
 }
 
 async function fetchRecipes() {
+  for(var i = 0; i < recipes.length; i++){
+    const key = recipes[i];
+    // Need to await in order to make the func behave async!!!
+    await fetch(recipes[i]) 
+    .then(response =>{ 
+          if (!response.ok) {
+            throw new Error("URL not working.");
+          }
+          
+          return response.json();
+    })
+    .then(data => {
+        recipeData[key] = data;
+    })
+    .catch(error =>{
+      reject(false);
+    })
+  }
+  // After all of the requests are done, return a promise!
   return new Promise((resolve, reject) => {
     // This function is called for you up above
     // From this function, you are going to fetch each of the recipes in the 'recipes' array above.
@@ -43,7 +67,14 @@ async function fetchRecipes() {
     // in the recipes folder and fetch them from there. You'll need to add their paths to the recipes array.
 
     // Part 1 Expose - TODO
-  });
+    // Check whether the length matchs!!!
+    if(Object.keys(recipeData).length == recipes.length){
+      resolve(true);
+    }
+    else{
+      reject(false);
+    }
+  })
 }
 
 function createRecipeCards() {
@@ -54,6 +85,12 @@ function createRecipeCards() {
   // show any others you've added when the user clicks on the "Show more" button.
 
   // Part 1 Expose - TODO
+  for(var i = 0; i < 3; i++){
+    
+    var card = document.createElement("recipe-card");
+    card.data = recipeData[recipes[i]];
+    document.querySelector('main').appendChild(card);
+  }
 }
 
 function bindShowMore() {
@@ -65,4 +102,31 @@ function bindShowMore() {
   // in the recipeData object where you stored them/
 
   // Part 2 Explore - TODO
+  var button = document.querySelector('button');
+  button.addEventListener('click', addmore);
+  parent.history.go(-2);
+  // button.addEventListener('click', showless());
+}
+
+function addmore(){
+  var button = document.querySelector('button');
+  // show more
+  if(button.innerHTML == "Show more"){
+    button.innerHTML = "Show less";
+    for(var i = 3; i < 6; i++){
+      var card = document.createElement("recipe-card");
+      card.id = i;
+      card.data = recipeData[recipes[i]];
+      document.querySelector('main').appendChild(card);
+    }
+  }
+  // show less
+  else{
+    button.innerHTML = "Show more";
+    for(var i = 3; i < 6; i++){
+      var children = document.getElementById(i);
+      document.querySelector('main').removeChild(children);
+    }
+  }
+ 
 }
